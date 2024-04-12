@@ -6,54 +6,28 @@
 /*   By: jsamardz <jsamardz@student.42heilnronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/11 10:51:00 by jsamardz          #+#    #+#             */
-/*   Updated: 2024/04/11 16:25:44 by jsamardz         ###   ########.fr       */
+/*   Updated: 2024/04/12 11:45:58 by jsamardz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-// void	ft_bits(char *str, char *bits)
-// {
-// 	int	i;
-// 	int	j;
+// sigusr1 is sendin 0
+// sigusr2 is sendin 1
 
-// 	i = 0;
-// 	while (str[i])
-// 	{
-// 		j = 7;
-// 		while (j >= 0)
-// 		{
-// 			bits[(i * 8) + (7 - j)] = ((str[i] >> j) & 1) + '0';
-// 			j--;
-// 		}
-// 		i++;
-// 	}
-// 	bits[i * 8] = '\0';
-// }
-
-void	ft_send(pid_t server_pid, char *str)
+void	ft_send(pid_t server_pid, char letter)
 {
 	int	i;
 
 	i = 0;
-	while (str[i])
+	while (i < 8)
 	{
-		if (str[i] == '1')
-		{
+		if ((letter & (0x01 << i)) == 0)
 			kill(server_pid, SIGUSR1);
-			exit(EXIT_SUCCESS);
-		}
-		else if (str[i] == '2')
-		{
-			kill(server_pid, SIGUSR2);
-			exit(EXIT_SUCCESS);
-		}
 		else
-		{
-			ft_printf("invalid char");
-			exit(EXIT_FAILURE);
-		}
-		usleep(500000);
+			kill(server_pid, SIGUSR2);
+		i++;
+		usleep(100000);
 	}
 }
 
@@ -61,18 +35,16 @@ int	main(int ac, char **av)
 {
 	pid_t	server_pid;
 	char	*str;
-	// char	bits[8 * ft_strlen(str) + 1];
 
 	str = av[2];
 	server_pid = ft_atoi(av[1]);
-	if (ac == 3)
-	{
-		// ft_bits(str, bits);
-		// ft_printf("%s\n", av[2]);
-		// ft_printf("%s", bits);
-		ft_send(server_pid, str);
-	}
-	else
+	if (ac != 3)
 		return (-1);
+	while (*str)
+	{
+		ft_send(server_pid, *str);
+		str++;
+	}
+	ft_send(server_pid, '\0');
 	return (0);
 }
